@@ -76,6 +76,21 @@ struct segdesc {
 // page table index
 #define PTX(va)         (((uint)(va) >> PTXSHIFT) & 0x3FF)
 
+// proj 02
+// moved from kalloc.c
+#define MAXENTRY 57344
+
+// VPN macro
+#define VPNSHIFT 12
+#define VPN_MACRO(va)  (((uint)(va) >> VPNSHIFT) & 0xFFFFF)
+#define VPN_TO_VA(vpn) ((uint)(vpn) << VPNSHIFT)
+
+// index macro
+#define IDX_PHYSICAL(idx) ((uint)(idx) * PGSIZE)
+
+#define LOG 0
+#define clprintf(...) if (LOG) cprintf(__VA_ARGS__)
+
 // offset within page
 #define OWP(va)         ((uint)(va) & 0xFFF)
 

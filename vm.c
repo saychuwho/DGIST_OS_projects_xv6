@@ -43,11 +43,29 @@ seginit(void)
 static pte_t *
 ittraverse(int pid, pde_t *pgdir, const void *va, int alloc) //You don't have to consider the pgdir argument
 {
-	uint idx; 
+  //if ((uint)va > 0x80109000)
+  //cprintf("ittraverse is called : va : 0x%x\n", (uint)va);
+	
+  uint idx; 
+
+  uint pa = 0;
 	//TODO: File the code that returns corresponding PTE_XV6[idx]'s address for given pid and VA
 	//1. Handle two case: the VA is over KERNBASE or not.
 	//2. For former case, return &PTE_KERN[(uint)V2P(physical address)];
 	//3. For latter case, find the phyiscal address for given pid and va using inverted page table, and return &PTE_XV6[idx]
+  
+  //if ((uint)va > 0x80109000)
+    //cprintf("allocation is done\n");
+  
+  // 2.
+  if((uint)va >= KERNBASE){
+    return &PTE_KERN[(uint)V2P(va)/PGSIZE];
+  }
+  // 3.
+  else{
+    idx = searchidx((uint)va, pid);
+    return &PTE_XV6[idx];
+  }
 }
 
 static pte_t *
@@ -79,6 +97,11 @@ mappages(int pid, int is_kernel, pde_t *pgdir, void *va, uint size, uint pa, int
 {
   char *a, *last;
   pte_t *pte;
+
+  //cprintf(".. mappages ..\n");
+  //cprintf("called from pa : 0x%x\n", (uint)pa);
+  //cprintf("called from va : 0x%x\n", (uint)va);
+  //cprintf("called from pid : %d\n", pid);
 
   a = (char*)PGROUNDDOWN((uint)va);
   last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
@@ -139,25 +162,39 @@ static struct kmap {
 pde_t*
 setupkvm(int is_kernel)
 {
+  //cprintf("setupkvm called : first_setup : %d\n", first_setup);
+
   pde_t *pgdir;
   struct kmap *k;
 
   if((pgdir = (pde_t*)kalloc(0,(char*)-1)) == 0)
     return 0;
+  
+  //cprintf("kalloc() is passed\n");
+
   memset(pgdir, 0, PGSIZE);
+
+  //cprintf("memset is end\n");
+
   if (P2V(PHYSTOP) > (void*)DEVSPACE)
     panic("PHYSTOP too high");
+  
   if (first_setup == 1 && is_kernel == 0) {
 	  return pgdir;
   }
+
   if (first_setup == 0 && is_kernel == 0) first_setup = 1;
-  
-  for(k = kmap; k < &kmap[NELEM(kmap)]; k++)
+
+  for(k = kmap; k < &kmap[NELEM(kmap)]; k++){
     if(mappages(0, is_kernel, pgdir, k->virt, k->phys_end - k->phys_start,
                 (uint)k->phys_start, k->perm) < 0) {
       freevm(0, pgdir);
       return 0;
     }
+  }
+
+  //cprintf("for loop is end\n");
+
   return pgdir;
 }
 
@@ -183,6 +220,7 @@ switchkvm(void)
 void
 switchuvm(struct proc *p)
 {
+  //cprintf("switchuvm called\n");
   if(p == 0)
     panic("switchuvm: no process");
   if(p->kstack == 0)
@@ -209,14 +247,26 @@ switchuvm(struct proc *p)
 void
 inituvm(pde_t *pgdir, char *init, uint sz)
 {
+  //cprintf("inituvm is called\n");
   char *mem;
 
   if(sz >= PGSIZE)
     panic("inituvm: more than a page");
   mem = kalloc(1, (char*)0);
+
+  //cprintf("kalloc returned mem : 0x%x\n", mem);
+
   memset(mem, 0, PGSIZE);
+
+  //cprintf("memset is done\n");
+
   mappages(1, 0, pgdir, 0, PGSIZE, V2P(mem), PTE_W|PTE_U);
+  
+  //cprintf("mappage is done\n");
+  
   memmove(mem, init, sz);
+
+  //cprintf("memmove is done\n");
 }
 
 // Load a program segment into pgdir.  addr must be page-aligned
@@ -251,6 +301,8 @@ allocuvm(int pid, pde_t *pgdir, uint oldsz, uint newsz, uint flags)
   char *mem;
   uint a;
 
+  //cprintf("allocuvm called with pid : %d\n", pid);
+
   if(newsz >= KERNBASE)
     return 0;
   if(newsz < oldsz)
@@ -259,6 +311,7 @@ allocuvm(int pid, pde_t *pgdir, uint oldsz, uint newsz, uint flags)
   a = PGROUNDUP(oldsz);
   for(; a < newsz; a += PGSIZE){
     mem = kalloc(pid, (char*)a);
+    //cprintf("mem : 0x%x\n", mem);
     if(mem == 0){
       cprintf("allocuvm out of memory\n");
       deallocuvm(pid, pgdir, newsz, oldsz);
@@ -282,6 +335,9 @@ allocuvm(int pid, pde_t *pgdir, uint oldsz, uint newsz, uint flags)
 
 int
 deallocuvm(int pid, pde_t *pgdir, uint oldsz, uint newsz){
+
+  //cprintf("deallocuvm called\n");
+
   pte_t *pte;
   uint a, pa;
   if(newsz >= oldsz)
@@ -289,6 +345,15 @@ deallocuvm(int pid, pde_t *pgdir, uint oldsz, uint newsz){
   a = PGROUNDUP(newsz);
   //TODO: File the code that free the allocated pages by users
   //For range in (a <= va < oldsz), if there are some pages that the process allocates, call kfree(pid, v)
+  
+  for (int i=0; i < MAXENTRY ; i++){
+    if(PID[i] == pid && (VPN[i] >= VPN_MACRO(a) && VPN[i] < VPN_MACRO(oldsz))){
+      //cprintf("pid %d VPN 0x%x VPN macro a : 0x%x idx %d\n", PID[i], VPN[i], VPN_MACRO(a), i);
+      kfree(pid, (char *)VPN_TO_VA(VPN[i]));
+    }
+  }
+
+  
   return newsz; 
 }
 
@@ -399,8 +464,8 @@ copyout(int pid, pde_t *pgdir, uint va, void *p, uint len)
  * The LOG macro should be used while performing early debugging only
  * and it'll most likely cause a crash during normal operations.
  */
-#define LOG 0
-#define clprintf(...) if (LOG) cprintf(__VA_ARGS__)
+//#define LOG 0
+//#define clprintf(...) if (LOG) cprintf(__VA_ARGS__)
 
 // Returns physical page address from virtual address
 static uint __virt_to_phys(int pid, int shadow, pde_t *pgdir, struct proc *proc, uint va)
@@ -413,9 +478,13 @@ static uint __virt_to_phys(int pid, int shadow, pde_t *pgdir, struct proc *proc,
 	pte_t *pgtable = (pte_t*)P2V(PTE_ADDR(*pde));
 	pa = PTE_ADDR(pgtable[PTX(va)]) | OWP(va);
 	return pa;
-  } 
+  }
+
   //TODO: Fill the code that converts VA to PA for given pid
   //Hint: Use ittraverse!
+  pte = ittraverse(pid, pgdir, (const void *)va, 0);
+  pa = PTE_ADDR(*pte) | (va & 0xFFF);
+
   return pa;
 }
 
@@ -425,6 +494,10 @@ static int __get_flags(int pid, pde_t *pgdir, struct proc *proc, uint va){
   pte_t *pte;
   //TODO: Fill the code that gets flags in PTE_XV6[idx] 
   //Hint: use the ittraverse and macro!
+
+  pte = ittraverse(pid, pgdir, (const void *)va, 0);
+  flags = PTE_FLAGS(*pte);
+
   return flags;
 }
 // Same as __virt_to_phys(), but with extra log
@@ -508,6 +581,10 @@ void pagefault(void)
 
   clprintf("pagefault--\n");
 }
+
+
+
+
 
 //PAGEBREAK!
 // Blank page.

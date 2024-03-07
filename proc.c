@@ -7,6 +7,9 @@
 #include "proc.h"
 #include "spinlock.h"
 
+//prj 02
+#include "syscall.h"
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -125,12 +128,24 @@ userinit(void)
   extern char _binary_initcode_start[], _binary_initcode_size[];
 
   p = allocproc();
+
+  //cprintf("allocproc is end\n");
+
   initproc = p;
   if((p->pgdir = setupkvm(0)) == 0)
     panic("userinit: out of memory?");
+
+  //cprintf("setupkvm(0) is called\n");
+
   p->shadow_pgdir = setupkvm(1);
+
+  //cprintf("setupkvm(1) is called\n");
+
   p->last_va = 0;
   inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
+  
+  //cprintf("inituvm end at userinit\n");
+  
   p->sz = PGSIZE;
   memset(p->tf, 0, sizeof(*p->tf));
   p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
@@ -325,6 +340,9 @@ wait(void)
 void
 scheduler(void)
 {
+
+  //cprintf("scheduler called\n");
+
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
@@ -535,4 +553,11 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+
+void print_hash_collision(){
+  struct proc *curproc = myproc();
+  curproc->tf->eax = SYS_print_hash_collision;
+  syscall();
 }

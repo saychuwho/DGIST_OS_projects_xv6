@@ -76,7 +76,10 @@ main(int argc, char *argv[])
   int i;
 
   if(argc < 2){
+    print_hash_collision();
+    
     ls(".");
+    
     exit();
   }
   for(i=1; i<argc; i++)

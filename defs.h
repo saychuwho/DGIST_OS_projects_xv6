@@ -68,7 +68,16 @@ char*           kalloc(int, char*);
 void            kfree(int, char*);
 void            kinit1(void*, void*);
 void            kinit2(void*, void*);
-uint			ittraverse(int, char*);
+//uint			ittraverse(int, char*); // prj 02
+
+// prj 02
+int searchidx(uint va, int pid);
+
+int searchidx_kern();
+
+int searchidx_alloc(uint va, int pid, int print);
+
+void __print_hash_collision();
 
 // kbd.c
 void            kbdintr(void);
@@ -187,6 +196,9 @@ void            switchkvm(void);
 int             copyout(int, pde_t*, uint, void*, uint);
 void            clearpteu(int, pde_t *pgdir, char *uva);
 void            pagefault(void);
+
+
+//int searchidx_kern();
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

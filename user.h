@@ -24,6 +24,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
+void print_hash_collision();
+
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

@@ -89,3 +89,11 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+//project 2
+
+int
+sys_print_hash_collision(){
+  __print_hash_collision();
+  return 0;
+}

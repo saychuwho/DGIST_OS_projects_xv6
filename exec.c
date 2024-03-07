@@ -104,6 +104,7 @@ exec(char *path, char **argv)
   curproc->page_faults = 0;
   freevm(curproc->pid, oldpgdir);
   //curproc->pid = 1;
+
   switchuvm(curproc);
   for (int i = 0; i < 57344; i ++){
 	if (PID[i] == 1000) {

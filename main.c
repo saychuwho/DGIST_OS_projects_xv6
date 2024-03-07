@@ -6,7 +6,7 @@
 #include "proc.h"
 #include "x86.h"
 
-#define MAXENTRY 57344
+//#define MAXENTRY 57344
 
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
@@ -16,7 +16,7 @@ extern char end[]; // first address after kernel loaded from ELF file
 int PID[MAXENTRY] = {0,};
 uint VPN[MAXENTRY] = {0,};
 pte_t PTE_XV6[MAXENTRY] = {0,};
-pte_t PTE_KERN[MAXENTRY] = {0,};
+pte_t PTE_KERN[MAXENTRY] = {0,}; 
 // Bootstrap processor starts running C code here.
 // Allocate a real stack and switch to it, first
 // doing some setup required for memory allocator to work.
@@ -47,7 +47,13 @@ main(void)
   startothers();   // start other processors
   kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
   //kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
+
+  //cprintf("called userinit\n");
+
   userinit();      // first user process
+
+  //cprintf("called mpmain\n");
+
   mpmain();        // finish this processor's setup
 }
 
@@ -66,8 +72,15 @@ static void
 mpmain(void)
 {
   cprintf("cpu%d: starting %d\n", cpuid(), cpuid());
+  
   idtinit();       // load idt register
+
+  //cprintf("idtinit done\n");
+
   xchg(&(mycpu()->started), 1); // tell startothers() we're up
+  
+  //cprintf("xchg done\n");
+
   scheduler();     // start running processes
 }
 
