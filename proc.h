@@ -1,3 +1,8 @@
+#ifndef PROC
+#define PROC
+
+#include "rbtree.h" // prj 01
+
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID
@@ -49,6 +54,26 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  uint start_tick; // mini-prj 01
+
+  // prj 01
+  uint key;                    // vruntime in CFS, deadline in EEVDF
+  uint time_slice;
+  struct rb_node node;
+  uint s_mode;
+  uint last_sched_time;
+
+  // prj 01 - EEVDF
+  int lag;
+  int vt_eligible;
+  int weight;
+  int quantum;
+  int used_time;
+  int vt_init;
+
+  // prj 01 extra
+  uint nice_value;
+  uint yield_num;
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -56,3 +81,47 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+
+// prj 01
+#define ROUND_ROBIN 0
+#define CFS 1
+#define EEVDF 2
+
+#define VT_MULTIPLE 10
+
+#define DEBUG_PROC_TREE 0
+#define DEBUG_PROC_TREE_2 0
+#define DEBUG_PROC_TREE_3 0
+#define DEBUG_TRAP_YIELD 0
+#define DEBUG_SCHED_ALLOC 0
+#define DEBUG_SCHED_PICK 0
+#define DEBUG_EEVDF 0
+
+
+
+enum sysfunc { ALLOCPROC, EXIT, SCHEDULER, YIELD, SLEEP, WAKEUP, NICE_VALUE_UP, NICE_VALUE_DOWN };
+
+void proc_tree_init();
+void __proc_tree_insert(struct proc *p, struct rb_root *root);
+void __proc_tree_erase(struct proc *p, struct rb_root *root);
+void proc_tree_insert(struct proc *p, struct rb_root *root, int debug, int sysfunc);
+void proc_tree_erase(struct proc *p, struct rb_root *root, int debug, int sysfunc);
+
+void eevdf_join(struct proc *p, int sysfunc);
+void eevdf_leave(struct proc *p, int sysfunc);
+
+// prj 01 Extra
+
+#define PRIORITY 3
+#define CFS_EXTRA 1
+
+struct cfs_prior{
+  uint curproc_num;
+  uint runnable_proc_num;
+  uint time_slice;
+};
+
+int __nice_value_up(struct proc *p);
+int __nice_value_down(struct proc *p);
+
+#endif

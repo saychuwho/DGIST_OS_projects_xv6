@@ -10,6 +10,8 @@ struct sleeplock;
 struct stat;
 struct superblock;
 
+struct cfs_prior;
+
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
@@ -120,6 +122,40 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+
+// prj 01
+extern uint sched_mode;
+extern uint sched_latency;
+extern uint min_granularity;
+extern uint nice_value;
+extern uint sched_tick;
+extern uint sched_time_slice;
+extern uint curproc_num;
+extern uint runnable_proc_num;
+
+// prj 01 - EEVDF
+extern int VirtualTime;
+extern int TotalWeight;
+
+// prj 01 - extra
+extern struct cfs_prior *Priority;
+
+// prj 01
+extern uint sched_mode;
+extern uint sched_latency;
+extern uint min_granularity;
+extern uint nice_value;
+extern uint sched_tick;
+extern uint sched_time_slice;
+extern uint curproc_num;
+extern uint runnable_proc_num;
+
+// prj 01 - EEVDF
+extern int VirtualTime;
+extern int TotalWeight;
+
+// prj 01 - extra
+extern struct cfs_prior *Priority;
 
 // swtch.S
 void            swtch(struct context**, struct context*);

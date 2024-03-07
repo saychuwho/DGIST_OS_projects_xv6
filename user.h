@@ -23,6 +23,13 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+// miniprj-02
+int gethostname(char *);
+int sethostname(const char *);
+
+// prj 01 extra
+int nicevalueup(void);
+int nicevaluedown(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -20,3 +20,7 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_gethostname 22 // mini-prj 02
+#define SYS_sethostname 23 // mini-prj 02
+#define SYS_nicevalueup 24 // prj 01 extra
+#define SYS_nicevaluedown 25 // prj 01 extra

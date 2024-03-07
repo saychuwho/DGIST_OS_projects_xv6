@@ -103,6 +103,10 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_gethostname(void); // mini-prj 02
+extern int sys_sethostname(void); // mini-prj 02
+extern int sys_nicevalueup(void); // prj 01 extra
+extern int sys_nicevaluedown(void); // prj 01 extra
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -126,6 +130,10 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_gethostname] sys_gethostname, // mini-prj 02
+[SYS_sethostname] sys_sethostname, // mini-prj 02
+[SYS_nicevalueup] sys_nicevalueup, // prj 01 extra
+[SYS_nicevaluedown] sys_nicevaluedown // prj 01 extra
 };
 
 void

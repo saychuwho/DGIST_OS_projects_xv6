@@ -177,6 +177,8 @@ getcmd(char *buf, int nbuf)
 {
   char hostname[64] = { 0, };
   // TODO: Fill in hostname using gethostname()
+  gethostname(hostname); // mini-prj 02
+
   printf(2, "root@%s:%s$ ", hostname, pwd);
   memset(buf, 0, nbuf);
   gets(buf, nbuf);
@@ -210,6 +212,8 @@ main(void)
         static char tmp[1024] = { 0, };
         // Append x from chdir(x) to pwd using strcat(), add "/" appropriately
         // TODO
+        strcat(pwd, buf+3);
+        strcat(pwd, "/");
 
         // Collapse pwd path and save it to tmp
         collapse_path(pwd, tmp);

@@ -7,6 +7,8 @@
 #include "mmu.h"
 #include "proc.h"
 
+char hostname[64] = "DataLab";
+
 int
 sys_fork(void)
 {
@@ -88,4 +90,38 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+// mini-prj 02
+int 
+sys_gethostname(void)
+{
+  char *h_name;
+  argstr(0, &h_name);
+  strcpy(h_name, hostname);
+  return 0;
+}
+
+// mini-prj 02
+int 
+sys_sethostname(void)
+{
+  char *h_name;
+  argstr(0, &h_name);
+  strcpy(hostname, h_name);
+  return 0;
+}
+
+// prj 01 extra
+
+int
+sys_nicevalueup(void)
+{
+  return __nice_value_up(myproc());
+}
+
+int
+sys_nicevaluedown(void)
+{
+  return __nice_value_down(myproc());
 }
