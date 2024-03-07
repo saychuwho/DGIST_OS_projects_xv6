@@ -590,6 +590,10 @@ createdelete(void)
   printf(1, "createdelete test\n");
 
   for(pi = 0; pi < 4; pi++){
+    
+    // debug
+    //printf(1, "forked\n");
+
     pid = fork();
     if(pid < 0){
       printf(1, "fork failed\n");
@@ -620,6 +624,9 @@ createdelete(void)
   }
 
   for(pi = 0; pi < 4; pi++){
+    // debug
+    //printf(1, "waiting\n");
+
     wait();
   }
 
